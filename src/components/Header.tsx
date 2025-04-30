@@ -1,10 +1,11 @@
 import React from 'react';
-import { AppBar, Toolbar, IconButton, Box, Button, Avatar } from '@mui/material';
+import { AppBar, Toolbar, IconButton, Box, Avatar } from '@mui/material';
 import styled from 'styled-components';
 import SearchIcon from '@mui/icons-material/Search';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import MessageIcon from '@mui/icons-material/Message';
 import InsightsIcon from '@mui/icons-material/Insights';
+import { Lightbulb } from '@mui/icons-material';
 
 const StyledAppBar = styled(AppBar)`
   background: #0a0a0a !important;
