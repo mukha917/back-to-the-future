@@ -9,7 +9,7 @@ import PostGrid from './components/PostGrid';
 import Sidebar from './components/Sidebar';
 import LandingPage from './components/LandingPage';
 import EmailPassword from './components/EmailPassword';
-import IntentForm from './components/IntentForm';
+import ConversationalIntentForm from './components/ConversationalIntentForm';
 import IntentModal from './components/IntentModal';
 
 const theme = createTheme({
@@ -59,7 +59,7 @@ const App: React.FC = () => {
             <>
               <Route path="/" element={<LandingPage />} />
               <Route path="/email-password" element={<EmailPassword />} />
-              <Route path="/intent" element={<IntentForm onAuthenticate={handleAuthenticate} />} />
+              <Route path="/intent" element={<ConversationalIntentForm onAuthenticate={handleAuthenticate} />} />
             </>
           ) : (
             <Route path="/" element={
