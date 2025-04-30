@@ -1,5 +1,5 @@
-import React from 'react';
-import { Box, Card, CardContent, CardMedia, Typography, Avatar, IconButton, Chip } from '@mui/material';
+import React, { useState } from 'react';
+import { Box, Card, CardContent, CardMedia, Typography, Avatar, IconButton, Chip, Button } from '@mui/material';
 import { Favorite, Comment, Share, MoreVert } from '@mui/icons-material';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
@@ -57,6 +57,18 @@ const VideoContainer = styled.video`
   border-top-left-radius: 16px;
   border-top-right-radius: 16px;
   background-color: #000;
+`;
+
+const ReadMoreButton = styled(Button)`
+  color: #00ff9d;
+  padding: 0;
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  text-transform: none;
+  &:hover {
+    background: transparent;
+    color: #00e68a;
+  }
 `;
 
 const posts = [
@@ -148,6 +160,20 @@ const posts = [
 ];
 
 const PostGrid = () => {
+  const [expandedPosts, setExpandedPosts] = useState<{ [key: number]: boolean }>({});
+
+  const toggleExpand = (postId: number) => {
+    setExpandedPosts(prev => ({
+      ...prev,
+      [postId]: !prev[postId]
+    }));
+  };
+
+  const truncateText = (text: string, maxLength: number) => {
+    if (text.length <= maxLength) return text;
+    return text.slice(0, maxLength) + '...';
+  };
+
   return (
     <GridContainer>
       {posts.map((post) => (
@@ -218,8 +244,16 @@ const PostGrid = () => {
               {post.title}
             </Typography>
             <Typography variant="body1" color="text.secondary" paragraph>
-              {post.content}
+              {expandedPosts[post.id] ? post.content : truncateText(post.content, 150)}
             </Typography>
+            {post.content.length > 150 && (
+              <ReadMoreButton
+                onClick={() => toggleExpand(post.id)}
+                size="small"
+              >
+                {expandedPosts[post.id] ? 'Show Less' : 'Read More'}
+              </ReadMoreButton>
+            )}
 
             <Box sx={{ mb: 2 }}>
               {post.tags.map((tag) => (
