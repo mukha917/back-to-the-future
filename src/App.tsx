@@ -1,20 +1,25 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import { Container, Box } from '@mui/material';
+import { Box } from '@mui/material';
 import styled from 'styled-components';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Header from './components/Header';
 import PostGrid from './components/PostGrid';
 import Sidebar from './components/Sidebar';
+import LandingPage from './components/LandingPage';
+import EmailPassword from './components/EmailPassword';
+import IntentForm from './components/IntentForm';
+import IntentModal from './components/IntentModal';
 
 const theme = createTheme({
   palette: {
     mode: 'dark',
     primary: {
-      main: '#00ff9d',
+      main: '#0a66c2',
     },
     secondary: {
-      main: '#ff00ff',
+      main: '#004182',
     },
     background: {
       default: '#0a0a0a',
@@ -37,21 +42,47 @@ const MainContent = styled(Box)`
   padding: 2rem 0;
 `;
 
-function App() {
+const App: React.FC = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleOpenModal = () => setIsModalOpen(true);
+  const handleCloseModal = () => setIsModalOpen(false);
+  const handleAuthenticate = () => setIsAuthenticated(true);
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <AppContainer>
-        <Header />
-        <Container maxWidth="xl">
-          <MainContent>
-            <Sidebar />
-            <PostGrid />
-          </MainContent>
-        </Container>
-      </AppContainer>
+      <Router>
+        <Routes>
+          {!isAuthenticated ? (
+            <>
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/email-password" element={<EmailPassword />} />
+              <Route path="/intent" element={<IntentForm onAuthenticate={handleAuthenticate} />} />
+            </>
+          ) : (
+            <Route path="/" element={
+              <AppContainer>
+                <Header onInsightClick={handleOpenModal} />
+                <MainContent>
+                  <Sidebar />
+                  <Routes>
+                    <Route path="/" element={<PostGrid />} />
+                  </Routes>
+                </MainContent>
+                <IntentModal 
+                  open={isModalOpen} 
+                  onClose={handleCloseModal} 
+                  onAuthenticate={handleAuthenticate}
+                />
+              </AppContainer>
+            } />
+          )}
+        </Routes>
+      </Router>
     </ThemeProvider>
   );
-}
+};
 
 export default App;

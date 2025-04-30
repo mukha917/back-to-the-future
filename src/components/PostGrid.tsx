@@ -1,14 +1,25 @@
 import React, { useState } from 'react';
 import { Box, Card, CardContent, CardMedia, Typography, Avatar, IconButton, Chip, Button } from '@mui/material';
-import { Favorite, Comment, Share, MoreVert } from '@mui/icons-material';
+import { Favorite, Comment, Share } from '@mui/icons-material';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
 
 const GridContainer = styled(Box)`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 2rem;
   width: 100%;
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+
+  @media (max-width: 1200px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 const StyledCard = styled(motion(Card))`
@@ -17,10 +28,13 @@ const StyledCard = styled(motion(Card))`
   border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 
   &:hover {
     transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0, 255, 157, 0.1);
+    box-shadow: 0 10px 20px rgba(10, 102, 194, 0.1);
   }
 `;
 
@@ -33,21 +47,25 @@ const PostHeader = styled(Box)`
 
 const PostContent = styled(CardContent)`
   padding: 1.5rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 `;
 
 const PostActions = styled(Box)`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 1rem;
+  margin-top: auto;
   padding-top: 1rem;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 `;
 
 const StyledChip = styled(Chip)`
-  background: linear-gradient(45deg, rgba(0, 255, 157, 0.2), rgba(0, 184, 255, 0.2));
-  color: #00ff9d;
+  background: rgba(10, 102, 194, 0.2);
+  color: #0a66c2;
   margin-right: 0.5rem;
+  margin-bottom: 0.5rem;
 `;
 
 const VideoContainer = styled.video`
@@ -60,14 +78,28 @@ const VideoContainer = styled.video`
 `;
 
 const ReadMoreButton = styled(Button)`
-  color: #00ff9d;
+  color: #0a66c2;
   padding: 0;
   margin-top: 0.5rem;
   font-size: 0.875rem;
   text-transform: none;
   &:hover {
     background: transparent;
-    color: #00e68a;
+    color: #004182;
+  }
+`;
+
+const TagsContainer = styled(Box)`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+`;
+
+const ActionButton = styled(IconButton)`
+  color: rgba(255, 255, 255, 0.7);
+  &:hover {
+    color: #0a66c2;
   }
 `;
 
@@ -109,19 +141,19 @@ const posts = [
   {
     id: 3,
     author: {
-      name: 'Emma Wilson',
-      avatar: 'https://randomuser.me/api/portraits/women/3.jpg',
-      title: 'Blockchain Developer'
+      name: 'Erran Berger',
+      avatar: 'https://media.licdn.com/dms/image/C4E03AQFQqQJQJqQJQJQ/profile-displayphoto-shrink_800_800/0/1516234000000?e=2147483647&v=beta&t=QJQJQJQJQJQJQJQJQJQJQJQJQJQJQJQJQJQJQJQJQ',
+      title: 'VP of Engineering at LinkedIn'
     },
     media: {
       type: 'image',
       url: 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80'
     },
-    title: 'Web3 Development Best Practices',
-    content: 'Essential tips and tricks for building secure and scalable Web3 applications.',
-    tags: ['Web3', 'Blockchain', 'Development'],
-    likes: 312,
-    comments: 45
+    title: 'Building Scalable Engineering Teams',
+    content: 'As VP of Engineering at LinkedIn, I\'m sharing insights on building and scaling high-performing engineering teams. Learn about our approach to technical leadership, innovation, and creating an environment where engineers can thrive and deliver their best work. Discover how we maintain engineering excellence while scaling our platform to serve millions of professionals worldwide.',
+    tags: ['Engineering', 'Leadership', 'Scalability', 'LinkedIn', 'Innovation'],
+    likes: 1892,
+    comments: 256
   },
   {
     id: 4,
@@ -249,37 +281,39 @@ const PostGrid = () => {
             {post.content.length > 150 && (
               <ReadMoreButton
                 onClick={() => toggleExpand(post.id)}
-                size="small"
               >
                 {expandedPosts[post.id] ? 'Show Less' : 'Read More'}
               </ReadMoreButton>
             )}
-
-            <Box sx={{ mb: 2 }}>
+            
+            <TagsContainer>
               {post.tags.map((tag) => (
-                <StyledChip key={tag} label={tag} size="small" />
+                <StyledChip
+                  key={tag}
+                  label={tag}
+                  size="small"
+                />
               ))}
-            </Box>
+            </TagsContainer>
 
             <PostActions>
               <Box sx={{ display: 'flex', gap: 1 }}>
-                <IconButton size="small">
-                  <Favorite />
-                </IconButton>
-                <Typography variant="body2">{post.likes}</Typography>
-                <IconButton size="small">
-                  <Comment />
-                </IconButton>
-                <Typography variant="body2">{post.comments}</Typography>
+                <ActionButton size="small">
+                  <Favorite fontSize="small" />
+                </ActionButton>
+                <Typography variant="body2" color="text.secondary">
+                  {post.likes}
+                </Typography>
+                <ActionButton size="small">
+                  <Comment fontSize="small" />
+                </ActionButton>
+                <Typography variant="body2" color="text.secondary">
+                  {post.comments}
+                </Typography>
               </Box>
-              <Box>
-                <IconButton size="small">
-                  <Share />
-                </IconButton>
-                <IconButton size="small">
-                  <MoreVert />
-                </IconButton>
-              </Box>
+              <ActionButton size="small">
+                <Share fontSize="small" />
+              </ActionButton>
             </PostActions>
           </PostContent>
         </StyledCard>

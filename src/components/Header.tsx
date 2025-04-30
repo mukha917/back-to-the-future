@@ -1,93 +1,113 @@
 import React from 'react';
-import { AppBar, Toolbar, Typography, InputBase, IconButton, Box } from '@mui/material';
-import { Search, Notifications, Message, Person } from '@mui/icons-material';
+import { AppBar, Toolbar, IconButton, Box, Button, Avatar } from '@mui/material';
 import styled from 'styled-components';
+import SearchIcon from '@mui/icons-material/Search';
+import NotificationsIcon from '@mui/icons-material/Notifications';
+import MessageIcon from '@mui/icons-material/Message';
+import InsightsIcon from '@mui/icons-material/Insights';
 
 const StyledAppBar = styled(AppBar)`
-  background: rgba(26, 26, 26, 0.8) !important;
-  backdrop-filter: blur(10px);
+  background: #0a0a0a !important;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 `;
 
-const SearchBar = styled.div`
-  position: relative;
-  border-radius: 20px;
-  background-color: rgba(255, 255, 255, 0.1);
-  margin-right: 2rem;
-  margin-left: 2rem;
-  width: 100%;
-  max-width: 500px;
-  transition: all 0.3s ease;
-
-  &:hover {
-    background-color: rgba(255, 255, 255, 0.15);
-  }
-`;
-
-const SearchIconWrapper = styled.div`
-  padding: 0 16px;
-  height: 100%;
-  position: absolute;
-  pointer-events: none;
+const Logo = styled(Box)`
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 0.5rem;
+  margin-right: 2rem;
 `;
 
-const StyledInputBase = styled(InputBase)`
-  color: inherit;
+const LogoText = styled(Box)`
+  color: #0a66c2;
+  font-weight: bold;
+  font-size: 1.5rem;
+`;
+
+const SearchBar = styled(Box)`
+  flex: 1;
+  max-width: 600px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  margin: 0 1rem;
+`;
+
+const SearchInput = styled.input`
+  background: transparent;
+  border: none;
+  color: white;
   width: 100%;
-  
-  .MuiInputBase-input {
-    padding: 8px 8px 8px 0;
-    padding-left: 48px;
-    width: 100%;
+  padding: 0.5rem;
+  font-size: 1rem;
+  outline: none;
+
+  &::placeholder {
+    color: rgba(255, 255, 255, 0.5);
   }
 `;
 
-const Header = () => {
+const NavIcons = styled(Box)`
+  display: flex;
+  gap: 1rem;
+  margin-left: 2rem;
+`;
+
+const StyledIconButton = styled(IconButton)`
+  color: rgba(255, 255, 255, 0.7) !important;
+  
+  &:hover {
+    color: #0a66c2 !important;
+  }
+`;
+
+interface HeaderProps {
+  onInsightClick: () => void;
+}
+
+const Header: React.FC<HeaderProps> = ({ onInsightClick }) => {
   return (
     <StyledAppBar position="static">
       <Toolbar>
-        <Typography
-          variant="h6"
-          noWrap
-          component="div"
-          sx={{ 
-            flexGrow: 0,
-            display: { xs: 'none', sm: 'block' },
-            background: 'linear-gradient(45deg, #00ff9d, #00b8ff)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            fontWeight: 'bold'
-          }}
-        >
-          FUTURE SOCIAL
-        </Typography>
-        
-        <SearchBar>
-          <SearchIconWrapper>
-            <Search />
-          </SearchIconWrapper>
-          <StyledInputBase
-            placeholder="Search..."
-            inputProps={{ 'aria-label': 'search' }}
+        <Logo>
+          <img 
+            src="https://content.linkedin.com/content/dam/me/business/en-us/amp/brand-site/v2/bg/LI-Logo.svg.original.svg" 
+            alt="LinkedIn Logo" 
+            height="32"
           />
+          <LogoText>LinkedIn</LogoText>
+        </Logo>
+
+        <SearchBar>
+          <SearchIcon sx={{ color: 'rgba(255, 255, 255, 0.5)', mr: 1 }} />
+          <SearchInput placeholder="Search" />
         </SearchBar>
 
-        <Box sx={{ flexGrow: 1 }} />
-
-        <Box sx={{ display: 'flex', gap: 1 }}>
-          <IconButton color="inherit">
-            <Notifications />
-          </IconButton>
-          <IconButton color="inherit">
-            <Message />
-          </IconButton>
-          <IconButton color="inherit">
-            <Person />
-          </IconButton>
-        </Box>
+        <NavIcons>
+          <StyledIconButton>
+            <SearchIcon />
+          </StyledIconButton>
+          <StyledIconButton>
+            <NotificationsIcon />
+          </StyledIconButton>
+          <StyledIconButton>
+            <MessageIcon />
+          </StyledIconButton>
+          <StyledIconButton onClick={onInsightClick}>
+            <InsightsIcon />
+          </StyledIconButton>
+          <Avatar 
+            sx={{ 
+              bgcolor: '#0a66c2',
+              width: 32,
+              height: 32
+            }}
+          >
+            JD
+          </Avatar>
+        </NavIcons>
       </Toolbar>
     </StyledAppBar>
   );
