@@ -9,8 +9,9 @@ import PostGrid from './components/PostGrid';
 import Sidebar from './components/Sidebar';
 import LandingPage from './components/LandingPage';
 import EmailPassword from './components/EmailPassword';
-import ConversationalIntentForm from './components/ConversationalIntentForm';
 import IntentModal from './components/IntentModal';
+import SemanticJobSearch from './components/SemanticJobSearch';
+import ConversationalIntentFormNew from './components/ConversationalIntentFormNew';
 
 const theme = createTheme({
   palette: {
@@ -59,7 +60,8 @@ const App: React.FC = () => {
             <>
               <Route path="/" element={<LandingPage />} />
               <Route path="/email-password" element={<EmailPassword />} />
-              <Route path="/intent" element={<ConversationalIntentForm onAuthenticate={handleAuthenticate} />} />
+              <Route path="/job-search" element={<SemanticJobSearch />} />
+              <Route path="/intent" element={<ConversationalIntentFormNew onAuthenticate={handleAuthenticate} />} />
             </>
           ) : (
             <Route path="/" element={
