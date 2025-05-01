@@ -2,21 +2,23 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Box, TextField, IconButton, Typography, CircularProgress, Tooltip, Button } from '@mui/material';
 import styled from 'styled-components';
 import SendIcon from '@mui/icons-material/Send';
-import MicIcon from '@mui/icons-material/Mic';
-import MicOffIcon from '@mui/icons-material/MicOff';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import VolumeOffIcon from '@mui/icons-material/VolumeOff';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { profileAnalyzer, ProfileInsights } from '../services/profileAnalyzer';
 
 const ChatContainer = styled(Box)`
   display: flex;
   flex-direction: column;
   height: 500px;
+  width: 600px;
+  margin: 0 auto;
   background: rgba(26, 26, 26, 0.8);
   border-radius: 16px;
   padding: 1rem;
   gap: 1rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 `;
 
 const MessagesContainer = styled(Box)`
@@ -26,24 +28,61 @@ const MessagesContainer = styled(Box)`
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  scroll-behavior: smooth;
+  
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+  }
 `;
 
 const MessageBubble = styled(motion.div)<{ isUser: boolean }>`
-  max-width: 80%;
-  padding: 1rem;
+  max-width: 70%;
+  padding: 0.8rem 1.2rem;
   border-radius: 16px;
   background: ${props => props.isUser ? '#0a66c2' : 'rgba(255, 255, 255, 0.1)'};
   color: ${props => props.isUser ? 'white' : 'rgba(255, 255, 255, 0.9)'};
   align-self: ${props => props.isUser ? 'flex-end' : 'flex-start'};
   word-wrap: break-word;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: relative;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    ${props => props.isUser ? `
+      border-width: 0 0 10px 10px;
+      border-color: transparent transparent #0a66c2 transparent;
+      right: -8px;
+      top: 0;
+    ` : `
+      border-width: 10px 10px 0 0;
+      border-color: rgba(255, 255, 255, 0.1) transparent transparent transparent;
+      left: -8px;
+      top: 0;
+    `}
+  }
 `;
 
 const InputContainer = styled(Box)`
   display: flex;
   gap: 1rem;
-  padding: 1rem;
+  padding: 0.8rem;
   background: rgba(255, 255, 255, 0.05);
-  border-radius: 16px;
+  border-radius: 12px;
+  align-items: center;
 `;
 
 const StyledTextField = styled(TextField)`
@@ -51,6 +90,7 @@ const StyledTextField = styled(TextField)`
   
   & .MuiOutlinedInput-root {
     color: white;
+    border-radius: 12px;
     
     & fieldset {
       border-color: rgba(255, 255, 255, 0.1);
@@ -68,34 +108,32 @@ const StyledTextField = styled(TextField)`
 
 const ButtonContainer = styled(Box)`
   display: flex;
+  justify-content: flex-end;
   gap: 1rem;
-  padding: 1rem;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 16px;
+  padding: 0.5rem;
 `;
 
 const ContinueButton = styled(Button)`
   background: #0a66c2 !important;
   color: white !important;
-  padding: 0.8rem;
+  padding: 0.4rem 1rem;
   font-weight: bold;
-  width: 100%;
+  min-width: auto;
   
   &:hover {
     background: #004182 !important;
   }
 `;
 
-interface VoiceButtonProps {
-  isListening: boolean;
-}
-
-const VoiceButton = styled(IconButton)<VoiceButtonProps>`
-  color: ${props => props.isListening ? '#ff4444' : '#0a66c2'};
-  transition: all 0.3s ease;
+const SummaryButton = styled(Button)`
+  background: #666666 !important;
+  color: white !important;
+  padding: 0.4rem 1rem;
+  font-weight: bold;
+  min-width: auto;
   
   &:hover {
-    background-color: rgba(10, 102, 194, 0.1);
+    background: #4d4d4d !important;
   }
 `;
 
@@ -106,6 +144,39 @@ const TTSButton = styled(IconButton)`
   &:hover {
     background-color: rgba(10, 102, 194, 0.1);
   }
+`;
+
+const InsightsContainer = styled(Box)`
+  background: rgba(26, 26, 26, 0.8);
+  border-radius: 16px;
+  padding: 1rem;
+  margin-top: 1rem;
+`;
+
+const InsightSection = styled(Box)`
+  margin-bottom: 1rem;
+`;
+
+const InsightTitle = styled(Typography)`
+  color: #0a66c2;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+`;
+
+const SummaryItem = styled(Box)`
+  display: flex;
+  margin-bottom: 0.5rem;
+`;
+
+const SummaryLabel = styled(Typography)`
+  color: #0a66c2;
+  font-weight: bold;
+  min-width: 150px;
+`;
+
+const SummaryValue = styled(Typography)`
+  color: rgba(255, 255, 255, 0.9);
+  flex: 1;
 `;
 
 interface Message {
@@ -162,6 +233,8 @@ const ConversationalIntentFormNew: React.FC<ConversationalIntentFormProps> = ({ 
   const [isLoading, setIsLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [isTTSEnabled, setIsTTSEnabled] = useState(true);
+  const [insights, setInsights] = useState<ProfileInsights | null>(null);
+  const [showInsights, setShowInsights] = useState(false);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const speechSynthesisRef = useRef<SpeechSynthesis | null>(null);
@@ -268,7 +341,10 @@ const ConversationalIntentFormNew: React.FC<ConversationalIntentFormProps> = ({ 
       setMessages(prev => [...prev, { text: response, isUser: false }]);
       speakText(response);
       
+      // Only analyze the profile if the conversation is complete
       if (response.toLowerCase().includes('welcome to linkedin')) {
+        const newInsights = profileAnalyzer.analyzeConversation([...messages, { text: userMessage, isUser: true }]);
+        setInsights(newInsights);
         setTimeout(() => {
           onAuthenticate();
         }, 2000);
@@ -292,6 +368,12 @@ const ConversationalIntentFormNew: React.FC<ConversationalIntentFormProps> = ({ 
 
   const handleContinue = () => {
     navigate('/job-search');
+  };
+
+  const handleGenerateSummary = () => {
+    const newInsights = profileAnalyzer.analyzeConversation(messages);
+    setInsights(newInsights);
+    setShowInsights(true);
   };
 
   const mockChatGPTResponse = async (userMessage: string): Promise<string> => {
@@ -376,6 +458,12 @@ const ConversationalIntentFormNew: React.FC<ConversationalIntentFormProps> = ({ 
         </Tooltip>
       </InputContainer>
       <ButtonContainer>
+        <SummaryButton
+          variant="contained"
+          onClick={handleGenerateSummary}
+        >
+          Generate Profile Summary
+        </SummaryButton>
         <ContinueButton
           variant="contained"
           onClick={handleContinue}
@@ -383,6 +471,33 @@ const ConversationalIntentFormNew: React.FC<ConversationalIntentFormProps> = ({ 
           Continue to Job Search
         </ContinueButton>
       </ButtonContainer>
+      {showInsights && insights && (
+        <InsightsContainer>
+          <InsightSection>
+            <InsightTitle>Profile Summary</InsightTitle>
+            <SummaryItem>
+              <SummaryLabel>Name:</SummaryLabel>
+              <SummaryValue>{insights.summary.name}</SummaryValue>
+            </SummaryItem>
+            <SummaryItem>
+              <SummaryLabel>Current Status:</SummaryLabel>
+              <SummaryValue>{insights.summary.currentStatus}</SummaryValue>
+            </SummaryItem>
+            <SummaryItem>
+              <SummaryLabel>Job Goals:</SummaryLabel>
+              <SummaryValue>{insights.summary.jobGoals}</SummaryValue>
+            </SummaryItem>
+            <SummaryItem>
+              <SummaryLabel>Preferred Locations:</SummaryLabel>
+              <SummaryValue>{insights.summary.preferredLocations}</SummaryValue>
+            </SummaryItem>
+            <SummaryItem>
+              <SummaryLabel>Key Skills:</SummaryLabel>
+              <SummaryValue>{insights.summary.keySkills}</SummaryValue>
+            </SummaryItem>
+          </InsightSection>
+        </InsightsContainer>
+      )}
     </ChatContainer>
   );
 };
