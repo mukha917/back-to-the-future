@@ -165,30 +165,39 @@ const ConversationalIntentFormNew: React.FC<ConversationalIntentFormProps> = ({ 
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const speechSynthesisRef = useRef<SpeechSynthesis | null>(null);
+  const currentUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
   useEffect(() => {
     // Initialize speech recognition
     if ('webkitSpeechRecognition' in window) {
       const recognition = new (window as any).webkitSpeechRecognition();
-      recognition.continuous = false;
+      recognition.continuous = true;
       recognition.interimResults = false;
       recognition.lang = 'en-US';
 
       recognition.onresult = (event: any) => {
-        const transcript = event.results[0][0].transcript;
+        const transcript = event.results[event.results.length - 1][0].transcript;
         setInput(prev => prev + ' ' + transcript);
       };
 
       recognition.onend = () => {
-        setIsListening(false);
+        // Only restart if we're not currently playing a response
+        if (recognitionRef.current && !currentUtteranceRef.current) {
+          recognitionRef.current.start();
+        }
       };
 
       recognition.onerror = (event: any) => {
         console.error('Speech recognition error:', event.error);
-        setIsListening(false);
+        // Only stop if it's a fatal error
+        if (event.error === 'no-speech' || event.error === 'audio-capture') {
+          setIsListening(false);
+        }
       };
 
       recognitionRef.current = recognition;
+      recognition.start();
+      setIsListening(true);
     }
 
     // Initialize speech synthesis
@@ -206,14 +215,9 @@ const ConversationalIntentFormNew: React.FC<ConversationalIntentFormProps> = ({ 
     };
   }, []);
 
-  const toggleListening = () => {
-    if (recognitionRef.current) {
-      if (isListening) {
-        recognitionRef.current.stop();
-      } else {
-        recognitionRef.current.start();
-        setIsListening(true);
-      }
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSend();
     }
   };
 
@@ -227,11 +231,26 @@ const ConversationalIntentFormNew: React.FC<ConversationalIntentFormProps> = ({ 
 
   const speakText = (text: string) => {
     if (speechSynthesisRef.current && isTTSEnabled) {
+      // Stop any ongoing recognition
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.rate = 1.0;
       utterance.pitch = 1.0;
       utterance.volume = 1.0;
       utterance.lang = 'en-US';
+
+      utterance.onend = () => {
+        currentUtteranceRef.current = null;
+        // Restart recognition after the response is complete
+        if (recognitionRef.current) {
+          recognitionRef.current.start();
+        }
+      };
+
+      currentUtteranceRef.current = utterance;
       speechSynthesisRef.current.speak(utterance);
     }
   };
@@ -281,7 +300,7 @@ const ConversationalIntentFormNew: React.FC<ConversationalIntentFormProps> = ({ 
     
     if (lowerMessage.includes('tom')) {
       return "Nice to meet you, Tom! Where do you currently work—or, if you're still in school, which school are you attending?";
-    } else if (lowerMessage.includes('student at ucla')) {
+    } else if (lowerMessage.includes('ucla')) {
       return "Got it—thanks! What brings you to LinkedIn today? (For example: job-seeking, networking, learning, etc.)";
     } else if (lowerMessage.includes('find a job') || lowerMessage.includes('looking for a job')) {
       return "Congratulations on your upcoming graduation! What's your major or primary field of study?";
@@ -298,7 +317,7 @@ const ConversationalIntentFormNew: React.FC<ConversationalIntentFormProps> = ({ 
     } else if (lowerMessage.includes('full time') || lowerMessage.includes('full-time')) {
       return "Great, would you like me to construct a job search query for you to run on LinkedIn?";
     } else if (lowerMessage.includes('yes') || lowerMessage.includes('please') || lowerMessage.includes('sure')) {
-      return "Here's a natural-language job search prompt you can drop into LinkedIn: Recent UCLA computer-science graduate seeking a full-time software-engineering role in climate tech in New York or San Francisco, where I can apply my Java skills and PyTorch machine-learning experience to do good in the world. Feel free to tweak any wording, but this should surface relevant openings!";
+      return "Here's a job search prompt you can drop into LinkedIn: Recent UCLA computer-science graduate seeking a full-time software-engineering role in climate tech in New York or San Francisco";
     } else {
       return "I'd love to help you make the most of LinkedIn. Could you tell me more about your professional interests and goals?";
     }
@@ -337,18 +356,10 @@ const ConversationalIntentFormNew: React.FC<ConversationalIntentFormProps> = ({ 
         <StyledTextField
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Type your message..."
-          onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+          placeholder={isListening ? "Listening... Speak now" : "Voice input not available"}
+          onKeyPress={handleKeyPress}
           disabled={isLoading}
         />
-        <Tooltip title={isListening ? "Stop Recording" : "Start Recording"}>
-          <VoiceButton
-            onClick={toggleListening}
-            isListening={isListening}
-          >
-            {isListening ? <MicOffIcon /> : <MicIcon />}
-          </VoiceButton>
-        </Tooltip>
         <Tooltip title={isTTSEnabled ? "Disable Text-to-Speech" : "Enable Text-to-Speech"}>
           <TTSButton onClick={toggleTTS}>
             {isTTSEnabled ? <VolumeUpIcon /> : <VolumeOffIcon />}
