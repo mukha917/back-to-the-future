@@ -7,15 +7,17 @@ import VolumeOffIcon from '@mui/icons-material/VolumeOff';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { profileAnalyzer, ProfileInsights } from '../services/profileAnalyzer';
+import MicIcon from '@mui/icons-material/Mic';
+import MicOffIcon from '@mui/icons-material/MicOff';
 
 const PhoneFrame = styled(Box)`
   width: 420px;
   height: 850px;
   background: #f0f0f0;
   border-radius: 40px;
-  padding: 20px;
+  padding: 10px;
   position: relative;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
   margin: 0 auto;
   overflow: hidden;
   
@@ -26,10 +28,10 @@ const PhoneFrame = styled(Box)`
     left: 50%;
     transform: translateX(-50%);
     width: 150px;
-    height: 30px;
+    height: 25px;
     background: #1a1a1a;
-    border-radius: 20px;
-    margin-top: 10px;
+    border-radius: 15px;
+    margin-top: 5px;
   }
 `;
 
@@ -37,7 +39,7 @@ const MobileScreen = styled(Box)`
   width: 100%;
   height: 100%;
   background: #1a1a1a;
-  border-radius: 20px;
+  border-radius: 30px;
   overflow: hidden;
   position: relative;
 `;
@@ -115,6 +117,20 @@ const InputContainer = styled(Box)`
   background: rgba(255, 255, 255, 0.05);
   border-radius: 12px;
   align-items: center;
+`;
+
+const MicButton = styled(IconButton)<{ isListening: boolean }>`
+  color: ${props => props.isListening ? '#ff4444' : '#0a66c2'};
+  transition: all 0.3s ease;
+  padding: 0.4rem;
+  
+  &:hover {
+    background-color: rgba(10, 102, 194, 0.1);
+  }
+  
+  & .MuiSvgIcon-root {
+    font-size: 1.2rem;
+  }
 `;
 
 const StyledTextField = styled(TextField)`
@@ -318,8 +334,8 @@ const ConversationalIntentFormNew: React.FC<ConversationalIntentFormProps> = ({ 
       };
 
       recognition.onend = () => {
-        // Only restart if we're not currently playing a response
-        if (recognitionRef.current && !currentUtteranceRef.current) {
+        // Only restart if we're not currently playing a response and still listening
+        if (recognitionRef.current && !currentUtteranceRef.current && isListening) {
           recognitionRef.current.start();
         }
       };
@@ -333,8 +349,6 @@ const ConversationalIntentFormNew: React.FC<ConversationalIntentFormProps> = ({ 
       };
 
       recognitionRef.current = recognition;
-      recognition.start();
-      setIsListening(true);
     }
 
     // Initialize speech synthesis
@@ -350,7 +364,7 @@ const ConversationalIntentFormNew: React.FC<ConversationalIntentFormProps> = ({ 
         speechSynthesisRef.current.cancel();
       }
     };
-  }, []);
+  }, [isListening]);
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
@@ -469,6 +483,17 @@ const ConversationalIntentFormNew: React.FC<ConversationalIntentFormProps> = ({ 
     }
   };
 
+  const toggleListening = () => {
+    if (recognitionRef.current) {
+      if (isListening) {
+        recognitionRef.current.stop();
+      } else {
+        recognitionRef.current.start();
+      }
+      setIsListening(!isListening);
+    }
+  };
+
   return (
     <PhoneFrame>
       <MobileScreen>
@@ -501,10 +526,18 @@ const ConversationalIntentFormNew: React.FC<ConversationalIntentFormProps> = ({ 
             <div ref={messagesEndRef} />
           </MessagesContainer>
           <InputContainer>
+            <Tooltip title={isListening ? "Stop Listening" : "Start Listening"}>
+              <MicButton
+                onClick={toggleListening}
+                isListening={isListening}
+              >
+                {isListening ? <MicIcon /> : <MicOffIcon />}
+              </MicButton>
+            </Tooltip>
             <StyledTextField
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder={isListening ? "Listening... Speak now" : "Voice input not available"}
+              placeholder={isListening ? "Listening... Speak now" : "Press mic to start speaking"}
               onKeyPress={handleKeyPress}
               disabled={isLoading}
               size="small"
