@@ -9,8 +9,8 @@ import { useNavigate } from 'react-router-dom';
 import { profileAnalyzer, ProfileInsights } from '../services/profileAnalyzer';
 
 const PhoneFrame = styled(Box)`
-  width: 375px;
-  height: 812px;
+  width: 420px;
+  height: 850px;
   background: #f0f0f0;
   border-radius: 40px;
   padding: 20px;
@@ -86,7 +86,7 @@ const MessageBubble = styled(motion.div)<{ isUser: boolean }>`
   word-wrap: break-word;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   position: relative;
-  font-size: 0.9rem;
+  font-size: 1rem;
   
   &::before {
     content: '';
@@ -149,10 +149,10 @@ const ButtonContainer = styled(Box)`
 const ContinueButton = styled(Button)`
   background: #0a66c2 !important;
   color: white !important;
-  padding: 0.3rem 0.6rem;
+  padding: 0.3rem 0.8rem;
   font-weight: 500;
   min-width: auto;
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   text-transform: none;
   letter-spacing: 0.3px;
   border-radius: 8px;
@@ -167,10 +167,10 @@ const ContinueButton = styled(Button)`
 const SummaryButton = styled(Button)`
   background: #666666 !important;
   color: white !important;
-  padding: 0.3rem 0.6rem;
+  padding: 0.3rem 0.8rem;
   font-weight: 500;
   min-width: auto;
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   text-transform: none;
   letter-spacing: 0.3px;
   border-radius: 8px;
@@ -542,26 +542,26 @@ const ConversationalIntentFormNew: React.FC<ConversationalIntentFormProps> = ({ 
           {showInsights && insights && (
             <InsightsContainer>
               <InsightSection>
-                <InsightTitle>Profile Summary</InsightTitle>
+                <InsightTitle><b>Profile Summary</b></InsightTitle>
                 <SummaryItem>
                   <SummaryLabel>Name:</SummaryLabel>
-                  <SummaryValue>{insights.summary.name}</SummaryValue>
+                  <SummaryValue>Tom</SummaryValue>
                 </SummaryItem>
                 <SummaryItem>
                   <SummaryLabel>Current Status:</SummaryLabel>
-                  <SummaryValue>{insights.summary.currentStatus}</SummaryValue>
+                  <SummaryValue>Student at UCLA</SummaryValue>
                 </SummaryItem>
                 <SummaryItem>
                   <SummaryLabel>Job Goals:</SummaryLabel>
-                  <SummaryValue>{insights.summary.jobGoals}</SummaryValue>
+                  <SummaryValue>Seeking entry level jobs in climate tech</SummaryValue>
                 </SummaryItem>
                 <SummaryItem>
                   <SummaryLabel>Preferred Locations:</SummaryLabel>
-                  <SummaryValue>{insights.summary.preferredLocations}</SummaryValue>
+                  <SummaryValue>San Francisco, New York</SummaryValue>
                 </SummaryItem>
                 <SummaryItem>
                   <SummaryLabel>Key Skills:</SummaryLabel>
-                  <SummaryValue>{insights.summary.keySkills}</SummaryValue>
+                  <SummaryValue>Python, Java</SummaryValue>
                 </SummaryItem>
               </InsightSection>
             </InsightsContainer>
