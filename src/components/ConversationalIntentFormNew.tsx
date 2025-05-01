@@ -8,17 +8,48 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { profileAnalyzer, ProfileInsights } from '../services/profileAnalyzer';
 
+const PhoneFrame = styled(Box)`
+  width: 375px;
+  height: 812px;
+  background: #f0f0f0;
+  border-radius: 40px;
+  padding: 20px;
+  position: relative;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  margin: 0 auto;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 150px;
+    height: 30px;
+    background: #1a1a1a;
+    border-radius: 20px;
+    margin-top: 10px;
+  }
+`;
+
+const MobileScreen = styled(Box)`
+  width: 100%;
+  height: 100%;
+  background: #1a1a1a;
+  border-radius: 20px;
+  overflow: hidden;
+  position: relative;
+`;
+
 const ChatContainer = styled(Box)`
   display: flex;
   flex-direction: column;
-  height: 500px;
-  width: 600px;
-  margin: 0 auto;
+  height: 100%;
+  width: 100%;
   background: rgba(26, 26, 26, 0.8);
-  border-radius: 16px;
   padding: 1rem;
   gap: 1rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 `;
 
 const MessagesContainer = styled(Box)`
@@ -31,22 +62,22 @@ const MessagesContainer = styled(Box)`
   scroll-behavior: smooth;
   
   &::-webkit-scrollbar {
-    width: 6px;
+    width: 4px;
   }
   
   &::-webkit-scrollbar-track {
     background: rgba(255, 255, 255, 0.1);
-    border-radius: 3px;
+    border-radius: 2px;
   }
   
   &::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.2);
-    border-radius: 3px;
+    border-radius: 2px;
   }
 `;
 
 const MessageBubble = styled(motion.div)<{ isUser: boolean }>`
-  max-width: 70%;
+  max-width: 80%;
   padding: 0.8rem 1.2rem;
   border-radius: 16px;
   background: ${props => props.isUser ? '#0a66c2' : 'rgba(255, 255, 255, 0.1)'};
@@ -55,6 +86,7 @@ const MessageBubble = styled(motion.div)<{ isUser: boolean }>`
   word-wrap: break-word;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   position: relative;
+  font-size: 0.9rem;
   
   &::before {
     content: '';
@@ -78,7 +110,7 @@ const MessageBubble = styled(motion.div)<{ isUser: boolean }>`
 
 const InputContainer = styled(Box)`
   display: flex;
-  gap: 1rem;
+  gap: 0.5rem;
   padding: 0.8rem;
   background: rgba(255, 255, 255, 0.05);
   border-radius: 12px;
@@ -109,40 +141,72 @@ const StyledTextField = styled(TextField)`
 const ButtonContainer = styled(Box)`
   display: flex;
   justify-content: flex-end;
-  gap: 1rem;
+  gap: 0.5rem;
   padding: 0.5rem;
+  margin-top: 0.5rem;
 `;
 
 const ContinueButton = styled(Button)`
   background: #0a66c2 !important;
   color: white !important;
-  padding: 0.4rem 1rem;
-  font-weight: bold;
+  padding: 0.3rem 0.6rem;
+  font-weight: 500;
   min-width: auto;
+  font-size: 0.75rem;
+  text-transform: none;
+  letter-spacing: 0.3px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(10, 102, 194, 0.2);
   
   &:hover {
     background: #004182 !important;
+    box-shadow: 0 4px 6px rgba(10, 102, 194, 0.3);
   }
 `;
 
 const SummaryButton = styled(Button)`
   background: #666666 !important;
   color: white !important;
-  padding: 0.4rem 1rem;
-  font-weight: bold;
+  padding: 0.3rem 0.6rem;
+  font-weight: 500;
   min-width: auto;
+  font-size: 0.75rem;
+  text-transform: none;
+  letter-spacing: 0.3px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   
   &:hover {
     background: #4d4d4d !important;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
   }
 `;
 
 const TTSButton = styled(IconButton)`
   color: #0a66c2;
   transition: all 0.3s ease;
+  padding: 0.4rem;
   
   &:hover {
     background-color: rgba(10, 102, 194, 0.1);
+  }
+  
+  & .MuiSvgIcon-root {
+    font-size: 1.2rem;
+  }
+`;
+
+const SendButton = styled(IconButton)`
+  color: #0a66c2;
+  transition: all 0.3s ease;
+  padding: 0.4rem;
+  
+  &:hover {
+    background-color: rgba(10, 102, 194, 0.1);
+  }
+  
+  & .MuiSvgIcon-root {
+    font-size: 1.2rem;
   }
 `;
 
@@ -406,99 +470,105 @@ const ConversationalIntentFormNew: React.FC<ConversationalIntentFormProps> = ({ 
   };
 
   return (
-    <ChatContainer>
-      <MessagesContainer>
-        {messages.map((message, index) => (
-          <MessageBubble
-            key={index}
-            isUser={message.isUser}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <Typography variant="body1">{message.text}</Typography>
-          </MessageBubble>
-        ))}
-        {isLoading && (
-          <MessageBubble
-            isUser={false}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <Box display="flex" alignItems="center" gap={1}>
-              <CircularProgress size={20} />
-              <Typography variant="body1">Thinking...</Typography>
-            </Box>
-          </MessageBubble>
-        )}
-        <div ref={messagesEndRef} />
-      </MessagesContainer>
-      <InputContainer>
-        <StyledTextField
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder={isListening ? "Listening... Speak now" : "Voice input not available"}
-          onKeyPress={handleKeyPress}
-          disabled={isLoading}
-        />
-        <Tooltip title={isTTSEnabled ? "Disable Text-to-Speech" : "Enable Text-to-Speech"}>
-          <TTSButton onClick={toggleTTS}>
-            {isTTSEnabled ? <VolumeUpIcon /> : <VolumeOffIcon />}
-          </TTSButton>
-        </Tooltip>
-        <Tooltip title="Send Message">
-          <IconButton
-            onClick={handleSend}
-            disabled={isLoading || !input.trim()}
-            color="primary"
-          >
-            <SendIcon />
-          </IconButton>
-        </Tooltip>
-      </InputContainer>
-      <ButtonContainer>
-        <SummaryButton
-          variant="contained"
-          onClick={handleGenerateSummary}
-        >
-          Generate Profile Summary
-        </SummaryButton>
-        <ContinueButton
-          variant="contained"
-          onClick={handleContinue}
-        >
-          Continue to Job Search
-        </ContinueButton>
-      </ButtonContainer>
-      {showInsights && insights && (
-        <InsightsContainer>
-          <InsightSection>
-            <InsightTitle>Profile Summary</InsightTitle>
-            <SummaryItem>
-              <SummaryLabel>Name:</SummaryLabel>
-              <SummaryValue>{insights.summary.name}</SummaryValue>
-            </SummaryItem>
-            <SummaryItem>
-              <SummaryLabel>Current Status:</SummaryLabel>
-              <SummaryValue>{insights.summary.currentStatus}</SummaryValue>
-            </SummaryItem>
-            <SummaryItem>
-              <SummaryLabel>Job Goals:</SummaryLabel>
-              <SummaryValue>{insights.summary.jobGoals}</SummaryValue>
-            </SummaryItem>
-            <SummaryItem>
-              <SummaryLabel>Preferred Locations:</SummaryLabel>
-              <SummaryValue>{insights.summary.preferredLocations}</SummaryValue>
-            </SummaryItem>
-            <SummaryItem>
-              <SummaryLabel>Key Skills:</SummaryLabel>
-              <SummaryValue>{insights.summary.keySkills}</SummaryValue>
-            </SummaryItem>
-          </InsightSection>
-        </InsightsContainer>
-      )}
-    </ChatContainer>
+    <PhoneFrame>
+      <MobileScreen>
+        <ChatContainer>
+          <MessagesContainer>
+            {messages.map((message, index) => (
+              <MessageBubble
+                key={index}
+                isUser={message.isUser}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Typography variant="body2">{message.text}</Typography>
+              </MessageBubble>
+            ))}
+            {isLoading && (
+              <MessageBubble
+                isUser={false}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Box display="flex" alignItems="center" gap={1}>
+                  <CircularProgress size={16} />
+                  <Typography variant="body2">Thinking...</Typography>
+                </Box>
+              </MessageBubble>
+            )}
+            <div ref={messagesEndRef} />
+          </MessagesContainer>
+          <InputContainer>
+            <StyledTextField
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder={isListening ? "Listening... Speak now" : "Voice input not available"}
+              onKeyPress={handleKeyPress}
+              disabled={isLoading}
+              size="small"
+            />
+            <Tooltip title={isTTSEnabled ? "Disable Text-to-Speech" : "Enable Text-to-Speech"}>
+              <TTSButton onClick={toggleTTS}>
+                {isTTSEnabled ? <VolumeUpIcon /> : <VolumeOffIcon />}
+              </TTSButton>
+            </Tooltip>
+            <Tooltip title="Send Message">
+              <SendButton
+                onClick={handleSend}
+                disabled={isLoading || !input.trim()}
+                color="primary"
+                size="small"
+              >
+                <SendIcon />
+              </SendButton>
+            </Tooltip>
+          </InputContainer>
+          <ButtonContainer>
+            <SummaryButton
+              variant="contained"
+              onClick={handleGenerateSummary}
+            >
+              Summary
+            </SummaryButton>
+            <ContinueButton
+              variant="contained"
+              onClick={handleContinue}
+            >
+              Continue
+            </ContinueButton>
+          </ButtonContainer>
+          {showInsights && insights && (
+            <InsightsContainer>
+              <InsightSection>
+                <InsightTitle>Profile Summary</InsightTitle>
+                <SummaryItem>
+                  <SummaryLabel>Name:</SummaryLabel>
+                  <SummaryValue>{insights.summary.name}</SummaryValue>
+                </SummaryItem>
+                <SummaryItem>
+                  <SummaryLabel>Current Status:</SummaryLabel>
+                  <SummaryValue>{insights.summary.currentStatus}</SummaryValue>
+                </SummaryItem>
+                <SummaryItem>
+                  <SummaryLabel>Job Goals:</SummaryLabel>
+                  <SummaryValue>{insights.summary.jobGoals}</SummaryValue>
+                </SummaryItem>
+                <SummaryItem>
+                  <SummaryLabel>Preferred Locations:</SummaryLabel>
+                  <SummaryValue>{insights.summary.preferredLocations}</SummaryValue>
+                </SummaryItem>
+                <SummaryItem>
+                  <SummaryLabel>Key Skills:</SummaryLabel>
+                  <SummaryValue>{insights.summary.keySkills}</SummaryValue>
+                </SummaryItem>
+              </InsightSection>
+            </InsightsContainer>
+          )}
+        </ChatContainer>
+      </MobileScreen>
+    </PhoneFrame>
   );
 };
 
